@@ -1,0 +1,9 @@
+
+
+*.xlsx
+.ipynb_checkpoints
+/__pycache__
+/env_ken_pom
+*.log
+/safe_code
+/data
