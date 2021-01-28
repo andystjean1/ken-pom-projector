@@ -10,6 +10,7 @@ from scraper import scrape_points_per_game_avg
 from scraper import scrape_possession_avg
 from scraper import generate_test_game
 from scraper import scrape_adjusted_off_avg
+from scraper import convert_html_to_game
 
 from game import Game
 
@@ -29,12 +30,14 @@ def initialize_data(day:str):
     driver = webdriver.Chrome(ChromeDriverManager().install())
 
     league_avg_pace = scrape_possession_avg(driver, tr_possessions_url)
-    league_avg_ppg = scrape_adjusted_off_avg() #scrape_points_per_game_avg(driver, tr_points_per_game_url)
+    league_avg_ppg = scrape_adjusted_off_avg() 
 
     if(day == "today"):
-        games = scrape_game_tables(driver, tr_odds_url)
+        games_table = scrape_game_tables(driver, tr_odds_url)
+        games = [convert_html_to_game(table) for table in games_table]
     elif(day == "tomorrow"):
-        games = scrape_game_table_tomorrow(driver, tr_odds_url)
+        games_table = scrape_game_table_tomorrow(driver, tr_odds_url)
+        games = [convert_html_to_game(table) for table in games_table]
     else:
         print(day + " is not a valid day")
         games = []
@@ -125,7 +128,7 @@ if __name__ == "__main__":
 
     #project the score for each game
     for game in games:
-        project_score_advanced(game)
+        game.project_score(league_avg_pace, league_avg_ppg)
         game_df = game_df.append(game.generate_dictionary(), ignore_index=True)
 
     game_df.to_excel("output.xlsx")

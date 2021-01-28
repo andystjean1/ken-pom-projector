@@ -7,6 +7,7 @@ import time
 import statistics
 import math
 
+from ncaa_game import NcaaGame
 from game import Game
 from team import Team
 
@@ -66,18 +67,14 @@ TEAM_NAME_DICT = {"The Citadel":"Citadel",
                   "UTSA":"TX-San Ant",
                   "FIU":"Florida Intl",
                   "Southern Miss":"S Mississippi",
-                  "UT Arlington":"Texas-Arlington",
                   "Middle Tennessee":"Middle Tenn",
-                  "Central Connecticut":"Central Connecticut State",
                   "Miami OH":"Miami (OH)",
                   "St. Francis NY": "St Fran (NY)",
                   "Merrimack":"Merrimack College",
                   "Loyola MD":"Loyola-MD",
                   "Bethune Cookman":"Bethune-Cookman",
-                  "Illinois Chicago":"Illinois-Chicago",
                   "Nebraska Omaha":"Neb Omaha",
                   "New Hampshire":"N Hamphsire",
-
                   "Gardner Webb":"Gard-Webb",
                   "N.C. State":"NC State",
                   "Maryland Eastern Shore":"Maryland-Eastern Shore",
@@ -110,7 +107,6 @@ TEAM_NAME_DICT = {"The Citadel":"Citadel",
                   "Charleston":"Col Charlestn",
                   "Southern Illinois":"S Illinois",
                   "Milwaukee": "WI-Milwkee",
-                  "Saint Peter's":"St Petersopen outpu",
                   "Grand Canyon":"Grd Canyon",
                   "Iowa St" : "Iowa State",
                   "Saint Mary's":"St Marys",
@@ -119,7 +115,7 @@ TEAM_NAME_DICT = {"The Citadel":"Citadel",
                   "South Florida":"S Florida",
                   "Boston College":"Boston Col",
                   "North Carolina":"N Carolina",
-                  "South Caroulina":"S Caroulina",
+                  "South Carolina":"S Carolina",
                   "North Carolina Central":"NC Central",
                   "Western Michigan":"W Michigan",
                   "St. Bonaventure":"St Bonavent",
@@ -199,9 +195,11 @@ TEAM_NAME_DICT = {"The Citadel":"Citadel",
                   "Saint Peter's":"St Peters",
                   "North Alabama":"N Alabama",
                   "Alabama A&M":"Alab A&M",
-                  "Incarnate Wood":"Incar Wood",
+                  "Incarnate Word":"Incar Word",
                   "Cal St Fullerton":"CS Fullerton",
-                  "Kent St":"Kent St."
+                  "Kent St":"Kent State",
+                  "Bowling Green":"Bowling Grn"
+
                 }
 
 #format the state
@@ -250,7 +248,7 @@ def convert_html_to_game(table) -> Game:
         line = abs(float(line_raw))
 
     # return a new game object
-    return Game(home, away, total, line)
+    return NcaaGame(home, away, total, line)
 
 #scrape the games from team rankings
 def scrape_game_tables(driver, url):
@@ -261,7 +259,7 @@ def scrape_game_tables(driver, url):
     div = soup.find('div', attrs={"class":"module-in clear"})
     tables = div.find_all("table")
 
-    return [convert_html_to_game(table) for table in tables]
+    return tables
 
 #scrape the games from team rankings for tomorrow
 def scrape_game_table_tomorrow(driver, url):
@@ -274,7 +272,7 @@ def scrape_game_table_tomorrow(driver, url):
 
     print(tables[1])
 
-    return [convert_html_to_game(table) for table in tables]
+    return tables
 
 #scrape the league average possession from team rankings
 def scrape_possession_avg(driver, url):
@@ -293,7 +291,6 @@ def scrape_possession_avg(driver, url):
         ppg = [float(ppg) for ppg in ppg_data if ppg != "--"]
 
     return statistics.mean(ppg)
-
 
 #scrape the league average points scored per game from team rankings
 def scrape_points_per_game_avg(driver, url):
