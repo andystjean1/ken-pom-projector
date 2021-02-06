@@ -70,11 +70,10 @@ TEAM_NAME_DICT = {"The Citadel":"Citadel",
                   "Middle Tennessee":"Middle Tenn",
                   "Miami OH":"Miami (OH)",
                   "St. Francis NY": "St Fran (NY)",
-                  "Merrimack":"Merrimack College",
                   "Loyola MD":"Loyola-MD",
                   "Bethune Cookman":"Bethune-Cookman",
                   "Nebraska Omaha":"Neb Omaha",
-                  "New Hampshire":"N Hamphsire",
+                  "New Hampshire":"N Hampshire",
                   "Gardner Webb":"Gard-Webb",
                   "N.C. State":"NC State",
                   "Maryland Eastern Shore":"Maryland-Eastern Shore",
@@ -133,6 +132,8 @@ TEAM_NAME_DICT = {"The Citadel":"Citadel",
                   "Loyola Marymount":"Loyola Mymt",
                   "UC Santa Barbara":"UCSB",
                   "Sacramento St":"Sac State",
+                  "Tarleton St": "Tarleton State",
+
                   "Eastern Illinois":"E Illinois",
                   "Western Illinois":"W Illinois",
                   "Louisiana Monroe":"LA Monroe",
@@ -198,7 +199,8 @@ TEAM_NAME_DICT = {"The Citadel":"Citadel",
                   "Incarnate Word":"Incar Word",
                   "Cal St Fullerton":"CS Fullerton",
                   "Kent St":"Kent State",
-                  "Bowling Green":"Bowling Grn"
+                  "Bowling Green":"Bowling Grn",
+                  "New Mexico St":"N Mex State"
 
                 }
 
