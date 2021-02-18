@@ -97,6 +97,7 @@ TEAM_NAME_DICT = {"The Citadel":"Citadel",
                   "Massachusetts":"U Mass",
                   "West Virginia":"W Virginia",
                   "St. John's": "St Johns",
+                  "UMBC":"Maryland BC",
                   "UNC Asheville": "NC-Asheville",
                   "Appalachian St":"App State",
                   "George Washington":"Geo Wshgtn",
@@ -105,7 +106,8 @@ TEAM_NAME_DICT = {"The Citadel":"Citadel",
                   "East Carolina":"E Carolina",
                   "Charleston":"Col Charlestn",
                   "Southern Illinois":"S Illinois",
-                  "Milwaukee": "WI-Milwkee",
+                  "Boston University":"Boston U",
+                  "Milwaukee":"WI-Milwkee",
                   "Grand Canyon":"Grd Canyon",
                   "Iowa St" : "Iowa State",
                   "Saint Mary's":"St Marys",
@@ -200,8 +202,11 @@ TEAM_NAME_DICT = {"The Citadel":"Citadel",
                   "Cal St Fullerton":"CS Fullerton",
                   "Kent St":"Kent State",
                   "Bowling Green":"Bowling Grn",
-                  "New Mexico St":"N Mex State"
-
+                  "New Mexico St":"N Mex State",
+                  "Mississippi Valley St":"Miss Val St",
+                  "Northern Iowa":"N Iowa",
+                  "Alcorn St":"Alcorn State",
+                  "Prairie View A&M":"Prairie View"
                 }
 
 #format the state
@@ -239,7 +244,12 @@ def convert_html_to_game(table) -> Game:
     away = Team(away_name, away_stats)
 
     #find the total for the game
-    total = float(rows[0].find_all('td')[3].text.strip())
+    total_raw = rows[0].find_all('td')[3].text.strip()
+
+    if(total_raw == "--"):
+        total = 0
+    else:
+        total = float(total_raw)
 
     #find the line to the game
     line_raw = rows[0].find_all('td')[2].text.strip()
@@ -247,7 +257,11 @@ def convert_html_to_game(table) -> Game:
     if(line_raw == "(Pick)"):
         line = 0
     else:
-        line = abs(float(line_raw))
+        try:
+            line = abs(float(line_raw))
+        except ValueError:
+            print("Value error converting line to float: ", line_raw)
+            line = 0.0
 
     # return a new game object
     return NcaaGame(home, away, total, line)
