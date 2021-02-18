@@ -12,29 +12,24 @@ from game import Game
 from team import Team
 
 ###################################
-# SCRAP KEN POM
+# SCRAPE KEN POM
 ###################################
 def scrape_ken_pom():
-    
     url="https://kenpom.com/index.php"
     resp = requests.get(url)
     soup = BeautifulSoup(resp.content, 'html.parser')
 
-    #find the table and header tags
+    #find the table and header tags and store them in a list
     table = soup.find_all('table', {'id':'ratings-table'})[0]
     headers = table.find('thead').find('tr', {'class':'thead2'})
-    #store the header tags titles into a list
     cols = [th.text for th in headers.find_all('th')]
 
-    #initialize the dataframe
-    
     kenpom_df = pd.DataFrame(columns=cols)
 
-    #get the data elements from the table
+    #get the data elements from the table and process each row
     body = table.find_all('tbody')[0]
     rows = body.find_all('tr')
 
-    #scrape the data from each row
     for r in rows:
         data = r.find_all('td')
         info = []
@@ -46,14 +41,12 @@ def scrape_ken_pom():
             except:
                 info.append(d.text)
 
-        #if the list isnt empty
         if(info != []):
-            #create a series with the list and add it to the dataframe
             info_df = pd.Series(info, index=cols)
             kenpom_df = kenpom_df.append(info_df, ignore_index=True)
 
     #clean and convert columns
-    kenpom_df["Team"] = kenpom_df.apply(lambda row: format_state_names(row), axis=1)
+    #kenpom_df["Team"] = kenpom_df.apply(lambda row: format_state_names(row), axis=1)
     kenpom_df["AdjO"] = pd.to_numeric(kenpom_df["AdjO"])
     kenpom_df["AdjD"] = pd.to_numeric(kenpom_df["AdjD"])
     kenpom_df["AdjT"] = pd.to_numeric(kenpom_df["AdjT"])
@@ -61,187 +54,45 @@ def scrape_ken_pom():
     return kenpom_df
 
 #Team Name Dictionary to make everything matchy matchy
-TEAM_NAME_DICT = {"The Citadel":"Citadel",
-                  "VMI":"VA Military",
-                  "Miami FL":"Miami (FL)",
-                  "UTSA":"TX-San Ant",
-                  "FIU":"Florida Intl",
-                  "Southern Miss":"S Mississippi",
-                  "Middle Tennessee":"Middle Tenn",
-                  "Miami OH":"Miami (OH)",
-                  "St. Francis NY": "St Fran (NY)",
-                  "Loyola MD":"Loyola-MD",
-                  "Bethune Cookman":"Bethune-Cookman",
-                  "Nebraska Omaha":"Neb Omaha",
-                  "New Hampshire":"N Hampshire",
-                  "Gardner Webb":"Gard-Webb",
-                  "N.C. State":"NC State",
-                  "Maryland Eastern Shore":"Maryland-Eastern Shore",
-                  "St. Francis PA":"St Fran (PA)",
-                  "Mount St Mary's":"Mt St Marys",
-                  "Texas A&M Corpus Chris":"TX A&M-CC",
-                  "Tennessee Martin":"TN Martin",
-                  "SIU Edwardsville":"SIU Edward",
-                  "TCU":"TX Christian",
-                  "Penn":"Pennsylvania",
-                  "SMU":"S Methodist",
-                  "Arkansas Pine Bluff":"Ark Pine Bl",
-                  "UT Rio Grande Valley":"TX-Pan Am",
-                  "Loyola Chicago":"Loyola-Chi",
-                  "Western Kentucky":"W Kentucky",
-                  "North Dakota St": "N Dakota St",
-                  "South Dakota St": "S Dakota St",
-                  "Long Beach St": "Lg Beach St",
-                  "San Francisco":"San Fransco",
-                  "Northeastern":"Northeastrn",
-                  "Massachusetts":"U Mass",
-                  "West Virginia":"W Virginia",
-                  "St. John's": "St Johns",
-                  "UMBC":"Maryland BC",
-                  "UNC Asheville": "NC-Asheville",
-                  "Appalachian St":"App State",
-                  "George Washington":"Geo Wshgtn",
-                  "Georgia Southern":"GA Southern",
-                  "South Carolina St":"S Car State",
-                  "East Carolina":"E Carolina",
-                  "Charleston":"Col Charlestn",
-                  "Southern Illinois":"S Illinois",
-                  "Boston University":"Boston U",
-                  "Milwaukee":"WI-Milwkee",
-                  "Grand Canyon":"Grd Canyon",
-                  "Iowa St" : "Iowa State",
-                  "Saint Mary's":"St Marys",
-                  "Florida Gulf Coast":"Fla Gulf Cst",
-                  "Tennessee St":"TN State",
-                  "South Florida":"S Florida",
-                  "Boston College":"Boston Col",
-                  "North Carolina":"N Carolina",
-                  "South Carolina":"S Carolina",
-                  "North Carolina Central":"NC Central",
-                  "Western Michigan":"W Michigan",
-                  "St. Bonaventure":"St Bonavent",
-                  "South Alabama":"S Alabama",
-                  "Mississippi St": "Miss State",
-                  "Dixie St": "Dixie State",
-                  "East Tennessee St":"E Tenn St",
-                  "USC Upstate":"SC Upstate",
-                  "Utah Valley":"Utah Val St",
-                  "North Carolina A&T":"NC A&T",
-                  "Western Carolina": "W Carolina",
-                  "Cal St Bakersfield":"CS Bakersfld",
-                  "Central Michigan":"Central Mich",
-                  "North Florida":"N Florida",
-                  "Loyola Marymount":"Loyola Mymt",
-                  "UC Santa Barbara":"UCSB",
-                  "Sacramento St":"Sac State",
-                  "Tarleton St": "Tarleton State",
+TEAM_NAME_DICT = {'Kansas St':'Kansas St.', 'Nicholls St':'Nicholls St.', 'Arizona St':'Arizona St.','Missouri St':'Missouri St.','Citadel': 'The Citadel', 'VA Military': 'VMI', 'Miami (FL)': 'Miami FL', 'TX-San Ant': 'UTSA', 'Florida Intl': 'FIU', 'S Mississippi': 'Southern Miss', 'Middle Tenn': 'Middle Tennessee', 'Miami (OH)': 'Miami OH', 'St Fran (NY)': 'St. Francis NY', 'Loyola-MD': 'Loyola MD', 'Bethune-Cookman': 'Bethune Cookman', 'Neb Omaha': 'Nebraska Omaha', 'N Hampshire': 'New Hampshire', 'Gard-Webb': 'Gardner Webb', 'NC State': 'N.C. St.ate', 'Maryland-Eastern Shore': 'Maryland Eastern Shore', 'St Fran (PA)': 'St. Francis PA', 'Mt St Marys': "Mount St. Mary's", 'TX A&M-CC': 'Texas A&M Corpus Chris', 'TN Martin': 'Tennessee Martin', 'SIU Edward': 'SIU Edwardsville', 'TX Christian': 'TCU', 'Pennsylvania': 'Penn', 'S Methodist': 'SMU', 'Ark Pine Bl': 'Arkansas Pine Bluff', 'TX-Pan Am': 'UT Rio Grande Valley', 'Loyola-Chi': 'Loyola Chicago', 'W Kentucky': 'Western Kentucky', 'N Dakota St': 'North Dakota St.', 'S Dakota St': 'South Dakota St.', 'Lg Beach St': 'Long Beach St.', 'San Fransco': 'San Francisco', 'Northeastrn': 'Northeastern', 'U Mass': 'Massachusetts', 'W Virginia': 'West Virginia', 'St Johns': "St. John's", 'Maryland BC': 'UMBC', 'NC-Asheville': 'UNC Asheville', 'App State': 'Appalachian St.', 'Geo Wshgtn': 'George Washington', 'GA Southern': 'Georgia Southern', 'S Car State': 'South Carolina St.', 'E Carolina': 'East Carolina', 'Col Charlestn': 'Charleston', 'S Illinois': 'Southern Illinois', 'Boston U': 'Boston University', 'WI-Milwkee': 'Milwaukee', 'Grd Canyon': 'Grand Canyon', 'Iowa State': 'Iowa St.', 'St Marys': "Saint Mary's", 'Fla Gulf Cst': 'Florida Gulf Coast', 'TN State': 'Tennessee St.', 'S Florida': 'South Florida', 'Boston Col': 'Boston College', 'N Carolina': 'North Carolina', 'S Carolina': 'South Carolina', 'NC Central': 'North Carolina Central', 'W Michigan': 'Western Michigan', 'St Bonavent': 'St. Bonaventure', 'S Alabama': 'South Alabama', 'Miss State': 'Mississippi St.', 'Dixie State': 'Dixie St.', 'E Tenn St': 'East Tennessee St.', 'SC Upstate': 'USC Upstate', 'Utah Val St': 'Utah Valley', 'NC A&T': 'North Carolina A&T', 'W Carolina': 'Western Carolina', 'CS Bakersfld': 'Cal St. Bakersfield', 'Central Mich': 'Central Michigan', 'N Florida': 'North Florida', 'Loyola Mymt': 'Loyola Marymount', 'UCSB': 'UC Santa Barbara', 'Sac State': 'Sacramento St.', 'Tarleton State': 'Tarleton St.', 'E Illinois': 'Eastern Illinois', 'W Illinois': 'Western Illinois', 'LA Monroe': 'Louisiana Monroe', 'Ste F Austin': 'Stephen F. Austin', 'NC-Wilmgton': 'UNC Wilmington', 'TX El Paso': 'UTEP', 'Ball State': 'Ball St.', 'LA Tech': 'Louisiana Tech', 'Central Ark': 'Central Arkansas', 'Cal St Nrdge': 'Cal St. Northridge', 'LA Lafayette': 'Louisiana', 'TN Tech': 'Tennessee Tech', 'Jksnville St': 'Jacksonville St.', 'Wash State': 'Washington St.', 'Sam Hous St': 'Sam Houston St.', 'E Kentucky': 'Eastern Kentucky', 'Wm & Mary': 'William & Mary', 'N Arizona': 'Northern Arizona', 'N Colorado': 'Northern Colorado', 'Houston Bap': 'Houston Baptist', 'Central Conn': 'Central Connecticut', 'Coastal Car': 'Coastal Carolina', 'VA Tech': 'Virginia Tech', 'TX Southern': 'Texas Southern', 'NC-Grnsboro': 'UNC Greensboro', 'Fla Atlantic': 'Florida Atlantic', 'F Dickinson': 'Fairleigh Dickinson', 'SE Louisiana': 'Southeastern Louisiana', 'SE Missouri': 'Southeast Missouri St.', 'Texas State': 'Texas St.', 'GA Tech': 'Georgia Tech', 'E Washingtn': 'Eastern Washington', 'Sacred Hrt': 'Sacred Heart', 'Ohio State': 'Ohio St.', 'St Josephs': "Saint Joseph's", 'S Utah': 'Southern Utah', 'Mass Lowell': 'UMass Lowell', 'Central FL': 'UCF', 'James Mad': 'James Madison', 'Idaho State': 'Idaho St.', 'Abl Christian': 'Abilene Christian', 'Charl South': 'Charleston Southern', 'NW State': 'Northwestern St.', 'Geo Mason': 'George Mason', 'Penn State': 'Penn St.', 'Weber State': 'Weber St.', 'Coppin State': 'Coppin St.', 'Utah State': 'Utah St.', 'Boise State': 'Boise St.', 'Wright State': 'Wright St.', 'WI-Grn Bay': 'Green Bay', 'IPFW': 'Purdue Fort Wayne', 'Youngs St': 'Youngstown St.', 'IL-Chicago': 'Illinois Chicago', 'Rob Morris': 'Robert Morris', 'N Kentucky': 'Northern Kentucky', 'TX-Arlington': 'UT Arlington', 'AR Lit Rock': 'Little Rock', 'St Peters': "Saint Peter's", 'N Alabama': 'North Alabama', 'Alab A&M': 'Alabama A&M', 'Incar Word': 'Incarnate Word', 'CS Fullerton': 'Cal St. Fullerton', 'Kent State': 'Kent St.', 'Bowling Grn': 'Bowling Green', 'N Mex State': 'New Mexico St.', 'Miss Val St': 'Mississippi Valley St.', 'N Iowa': 'Northern Iowa', 'Alcorn State': 'Alcorn St.', 'Prairie View': 'Prairie View A&M'}
 
-                  "Eastern Illinois":"E Illinois",
-                  "Western Illinois":"W Illinois",
-                  "Louisiana Monroe":"LA Monroe",
-                  "Stephen F. Austin":"Ste F Austin",
-                  "UNC Wilmington":"NC-Wilmgton",
-                  "UTEP":"TX El Paso",
-                  "Ball St":"Ball State",
-                  "Louisiana Tech":"LA Tech",
-                  "Central Arkansas":"Central Ark",
-                  "Cal St Northridge":"Cal St Nrdge",
-                  "Louisiana":'LA Lafayette',
-                  "Tennessee Tech":"TN Tech",
-                  "Jacksonville St":"Jksnville St",
-                  "Washingston St":"Wash State",
-                  "Sam Houston St":"Sam Hous St",
-                  "Eastern Kentucky":"E Kentucky",
-                  "William & Mary":"Wm & Mary",
-                  "Northern Arizona":"N Arizona",
-                  "Northern Colorado":"N Colorado",
-                  "Houston Baptist":"Houston Bap",
-                  "Central Connecticut":"Central Conn",
-                  "Coastal Carolina":"Coastal Car",
-                  "Virginia Tech":"VA Tech",
-                  "Texas Southern":"TX Southern",
-                  "UNC Greensboro":"NC-Grnsboro",
-                  "Florida Atlantic":"Fla Atlantic",
-                  "Fairleigh Dickinson":"F Dickinson",
-                  "Southeastern Louisiana":"SE Louisiana",
-                  "Southeast Missouri St":"SE Missouri",
-                  "Texas St":"Texas State",
-                  "Georgia Tech":"GA Tech",
-                  "Eastern Washington":"E Washingtn",
-                  "Sacred Heart":"Sacred Hrt",
-                  "Ohio St":"Ohio State",
-                  "Saint Joseph's":"St Josephs",
-                  "Southern Utah":"S Utah",
-                  "UMass Lowell":"Mass Lowell",
-                  "UCF":"Central FL",
-                  "James Madison":"James Mad",
-                  "Idaho St":"Idaho State",
-                  "Abilene Christian":"Abl Christian",
-                  "Charleston Southern":"Charl South",
-                  "Northwestern St":"NW State",
-                  "George Mason":"Geo Mason",
-                  "Washington St":"Wash State",
-                  "Penn St":"Penn State",
-                  "Weber St":"Weber State",
-                  "Coppin St":"Coppin State",
-                  "Utah St":"Utah State",
-                  "Boise St":"Boise State",
-                  "Wright St":"Wright State",
-                  "Green Bay":"WI-Grn Bay",
-                  "Purdue Fort Wayne":"IPFW",
-                  "Youngstown St":"Youngs St",
-                  "Illinois Chicago":"IL-Chicago",
-                  "Robert Morris":"Rob Morris",
-                  "Northern Kentucky":"N Kentucky",
-                  "UT Arlington":"TX-Arlington",
-                  "Little Rock":"AR Lit Rock",
-                  "Saint Peter's":"St Peters",
-                  "North Alabama":"N Alabama",
-                  "Alabama A&M":"Alab A&M",
-                  "Incarnate Word":"Incar Word",
-                  "Cal St Fullerton":"CS Fullerton",
-                  "Kent St":"Kent State",
-                  "Bowling Green":"Bowling Grn",
-                  "New Mexico St":"N Mex State",
-                  "Mississippi Valley St":"Miss Val St",
-                  "Northern Iowa":"N Iowa",
-                  "Alcorn St":"Alcorn State",
-                  "Prairie View A&M":"Prairie View"
-                }
 
-#format the state
-def format_state_names(row):
-    name = row.Team
-    name = name.replace(" St.", " St")
-
+#map a team ranking team name to kenpom
+def map_name_to_kenpom(name_tr: str) -> str:
+    name_kp = name_tr
     try:
-        name = TEAM_NAME_DICT[name]
-    except:
+        name_kp = TEAM_NAME_DICT[name_tr]
+    except KeyError:
         pass
 
-    return name
+    #if no name is found return the original name
+    return name_kp
 
 # convert an html game into an object
 # grab the two teams playing and the total line
 def convert_html_to_game(table) -> Game: 
 
-    #scrape the ken_pom info
+    #scrape the ken_pom info - WHY AM I SCRAPING KEN POM EVERYTIME I CONVERT A GAME
     ken_pom_df = scrape_ken_pom()
 
     #grab the rows from the tables
     rows = table.find("tbody").find_all("tr")
 
-    #grab the team names and total 
-    away_name = rows[0].find_all('td')[0].text.strip()
-    home_name = rows[1].find_all('td')[0].text.strip()
+    #grab the team names
+    away_name_tr = rows[0].find_all('td')[0].text.strip()
+    home_name_tr = rows[1].find_all('td')[0].text.strip()
+
+    #map the names here
+    away_name_kp = map_name_to_kenpom(away_name_tr)
+    home_name_kp = map_name_to_kenpom(home_name_tr)
 
     #find the ken pom stats for team 1 and create the team object
-    home_stats = ken_pom_df[ken_pom_df["Team"] == home_name]
-    home = Team(home_name, home_stats)
+    home_stats = ken_pom_df[ken_pom_df["Team"] == home_name_kp]
+    home = Team(home_name_kp, home_stats)
 
     #find the ken pom stats for team 2 and create the team object
-    away_stats = ken_pom_df[ken_pom_df["Team"] == away_name]
-    away = Team(away_name, away_stats)
+    away_stats = ken_pom_df[ken_pom_df["Team"] == away_name_kp]
+    away = Team(away_name_kp, away_stats)
 
     #find the total for the game
     total_raw = rows[0].find_all('td')[3].text.strip()
@@ -343,7 +194,6 @@ def generate_test_game():
         "AdjD":80.7,
         "AdjT":71.5
     }
-
     unc_dict = {
         "Team":"UNC",
         "AdjO":119.8,
@@ -351,23 +201,20 @@ def generate_test_game():
         "AdjT":76.3
     }
 
-    #add it to the dictionary
     test_df = test_df.append(duke_dict, ignore_index=True)
     test_df = test_df.append(unc_dict, ignore_index=True)
 
-    #duke is the home team - unc is the away team
+    #duke is the home team
     duke_stats = test_df[test_df["Team"] == "Duke"]
     duke = Team("Duke", duke_stats)
 
     unc_stats = test_df[test_df["Team"] == "UNC"]
     unc = Team("UNC", unc_stats)
 
-    test_game = Game(duke, unc, 150.0, 5) #the total here is arbitrary for now
-
+    test_game = Game(duke, unc, 150.0, 5) #the total here is arbitrary 
     return [test_game]
 
 if __name__ == "__main__":
 
     avg_adj_off = scrape_adjusted_off_avg()
-
     print(avg_adj_off)
