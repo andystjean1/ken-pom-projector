@@ -46,7 +46,8 @@ def scrape_ken_pom():
             kenpom_df = kenpom_df.append(info_df, ignore_index=True)
 
     #clean and convert columns
-    #kenpom_df["Team"] = kenpom_df.apply(lambda row: format_state_names(row), axis=1)
+    kenpom_df["Team"] = kenpom_df["Team"].str.replace(r'\d+', '')
+    kenpom_df["Team"] = kenpom_df["Team"].apply(lambda x: x.strip())
     kenpom_df["AdjO"] = pd.to_numeric(kenpom_df["AdjO"])
     kenpom_df["AdjD"] = pd.to_numeric(kenpom_df["AdjD"])
     kenpom_df["AdjT"] = pd.to_numeric(kenpom_df["AdjT"])
@@ -59,7 +60,8 @@ TEAM_NAME_DICT = {'N Illinois':'Northern Illinois','E Michigan':'Eastern Michiga
 
 #map a team ranking team name to kenpom
 def map_name_to_kenpom(name_tr: str) -> str:
-    name_kp = name_tr
+    name_kp = name_tr #"".join(s for s in name_tr if not s.isdigit())
+    print(name_kp)
     try:
         name_kp = TEAM_NAME_DICT[name_tr]
     except KeyError:
@@ -88,6 +90,8 @@ def convert_html_to_game(table) -> Game:
     #map the names here
     away_name_kp = map_name_to_kenpom(away_name_tr)
     home_name_kp = map_name_to_kenpom(home_name_tr)
+
+   
 
     #find the ken pom stats for team 1 and create the team object
     home_stats = ken_pom_df[ken_pom_df["Team"] == home_name_kp]
@@ -138,7 +142,7 @@ def scrape_games_tourney(driver, url):
     soup = BeautifulSoup(driver.page_source, 'html.parser')
 
     divs = soup.find_all('div', attrs={"class":"module-in clear"})
-    print(divs)
+    print(len(divs))
     tables = [div.find_all("table") for div in divs]
 
     return tables

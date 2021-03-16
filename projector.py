@@ -57,12 +57,17 @@ def initialize_tourney():
     league_avg_pace = scrape_possession_avg(driver, tr_possessions_url)
     league_avg_ppg = scrape_adjusted_off_avg() 
 
-    
     games_table = scrape_games_tourney(driver, tr_odds_url)
 
+    tourney = []
     for table in games_table:
         matches = [convert_html_to_game(t) for t in table]
-        games.append(matches)
+        #print(matches)
+        tourney.extend(matches)
+        print("done", len(tourney))
+        print(tourney)
+
+    games = tourney
 
     driver.close()
 
@@ -134,32 +139,7 @@ def project_score_advanced(gane:Game):
 
         game.calculate_edge()
 
-#project the score with a more mathy formula
-def project_score_tourney(gane:Game):
 
-    #check if the team stats are empty
-    if(isinstance(game.home_team.stats, int) or isinstance(game.away_team.stats, int)):
-        print("The Game for {} and {} didnt not have any stats".format(game.home_team.name, game.away_team.name))
-
-    else:
-        #caluclate the game pace
-        game_pace = (game.home_team.adjusted_tempo() * game.away_team.adjusted_tempo())/league_avg_pace #multiply ken pom pace from each team and divide by the league average
-        game_pace = round(game_pace, 2)
-
-        #calculate the PPP for each team
-        home_ppp = round((home_adj_off * away_adj_def)/league_avg_ppg, 2)
-        away_ppp = round((away_adj_off * home_adj_def)/league_avg_ppg, 2)
-
-        #multuply the PPP by the game pace and divide by 100
-        home_points = (home_ppp * game_pace)/100
-        away_points = (away_ppp * game_pace)/100
-
-        game.home_projected_score = round(home_points, 2)
-        game.away_projected_score = round(away_points, 2)
-        game.projected_total = round(home_points + away_points, 2)
-        game.projected_line = round(abs(home_points - away_points), 2)
-
-        game.calculate_edge()
 
 #MAIN FUNCTION
 if __name__ == "__main__":
@@ -170,7 +150,7 @@ if __name__ == "__main__":
 
     #populate the global data variables
     #initialize_data("today")
-    #initialize_debug_data()
+    # #initialize_debug_data()
     initialize_tourney()
 
     print("initialized data")
@@ -178,9 +158,7 @@ if __name__ == "__main__":
 
     #project the score for each game
     for game in games:
-
-
-        #game.project_score(league_avg_pace, league_avg_ppg)
+        game.project_score_tourney(league_avg_pace, league_avg_ppg)
         game_df = game_df.append(game.generate_dictionary(), ignore_index=True)
 
     game_df.to_excel("output.xlsx")

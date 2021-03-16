@@ -49,6 +49,40 @@ class NcaaGame(Game):
 
             self.calculate_edge()
     
+    def project_score_tourney(self, league_avg_pace, league_avg_ppg):
+
+        #check if the team stats are empty
+        if(isinstance(self.home_team.stats, int) or isinstance(self.away_team.stats, int)):
+            print("The Game for {} and {} didnt not have any stats".format(self.home_team.name, self.away_team.name))
+
+        else:
+
+            #adjust for home court advantage
+            home_adj_off = round(self.home_team.adjusted_offense())# * 1.014, 2) #add 1.4% to the home team offense
+            home_adj_def = round(self.home_team.adjusted_defense())# * 0.986, 2) #subtract 1.4% to the home team defense
+
+            away_adj_off = round(self.away_team.adjusted_offense() * 0.986, 2) #subtract 1.4% to the away team offense
+            away_adj_def = round(self.away_team.adjusted_defense() * 1.014, 2) #add 1.4% to teh away team defense
+
+            #caluclate the self pace
+            self_pace = (self.home_team.adjusted_tempo() * self.away_team.adjusted_tempo())/league_avg_pace #multiply ken pom pace from each team and divide by the league average
+            self_pace = round(self_pace, 2)
+
+            #calculate the PPP for each team
+            home_ppp = round((home_adj_off * away_adj_def)/league_avg_ppg, 2)
+            away_ppp = round((away_adj_off * home_adj_def)/league_avg_ppg, 2)
+
+            #multuply the PPP by the self pace and divide by 100
+            home_points = (home_ppp * self_pace)/100
+            away_points = (away_ppp * self_pace)/100
+
+            self.home_projected_score = round(home_points, 2)
+            self.away_projected_score = round(away_points, 2)
+            self.projected_total = round(home_points + away_points, 2)
+            self.projected_line = round(abs(home_points - away_points), 2)
+
+            self.calculate_edge()
+    
     #calculate the edge
     def calculate_edge(self):
         #subtract the total from the projected and multiply by -1 to flip the number to match over/under
