@@ -6,6 +6,7 @@ import re
 import time
 import statistics
 import math
+import sys
 
 from ncaa_game import NcaaGame
 from game import Game
@@ -18,6 +19,10 @@ def scrape_ken_pom():
     url="https://kenpom.com/index.php"
     resp = requests.get(url)
     soup = BeautifulSoup(resp.content, 'html.parser')
+
+    if(resp.status_code != 200):
+        print("bad status code scraping kenpom")
+        return pd.empty()
 
     #find the table and header tags and store them in a list
     table = soup.find_all('table', {'id':'ratings-table'})[0]
@@ -52,6 +57,8 @@ def scrape_ken_pom():
     kenpom_df["AdjD"] = pd.to_numeric(kenpom_df["AdjD"])
     kenpom_df["AdjT"] = pd.to_numeric(kenpom_df["AdjT"])
 
+
+
     return kenpom_df
 
 #Team Name Dictionary to make everything matchy matchy
@@ -75,7 +82,7 @@ def map_name_to_kenpom(name_tr: str) -> str:
 
 # convert an html game into an object
 # grab the two teams playing and the total line
-def convert_html_to_game(table) -> Game: 
+def convert_html_to_game(table) -> NcaaGame: 
 
     #scrape the ken_pom info - WHY AM I SCRAPING KEN POM EVERYTIME I CONVERT A GAME
     ken_pom_df = scrape_ken_pom()
@@ -91,8 +98,6 @@ def convert_html_to_game(table) -> Game:
     away_name_kp = map_name_to_kenpom(away_name_tr)
     home_name_kp = map_name_to_kenpom(home_name_tr)
 
-   
-
     #find the ken pom stats for team 1 and create the team object
     home_stats = ken_pom_df[ken_pom_df["Team"] == home_name_kp]
     home = Team(home_name_kp, home_stats)
@@ -100,6 +105,9 @@ def convert_html_to_game(table) -> Game:
     #find the ken pom stats for team 2 and create the team object
     away_stats = ken_pom_df[ken_pom_df["Team"] == away_name_kp]
     away = Team(away_name_kp, away_stats)
+
+    
+    
 
     #find the total for the game
     total_raw = rows[0].find_all('td')[3].text.strip()
@@ -166,17 +174,36 @@ def scrape_possession_avg(driver, url):
     time.sleep(5)
     soup = BeautifulSoup(driver.page_source, 'html.parser')
 
-    table = soup.find('table', attrs={"id":"DataTables_Table_0"})
-    tbody = table.find('tbody')
-    rows = tbody.find_all('tr')
+    table = soup.find('table', attrs={"id":"DataTables_Table_0"}) #find the tabel
 
-    for row in rows:
-        data = row.find_all('td')
-        ppg = data[2].text
-        ppg_data = [row.find_all('td')[2].text for row in rows]
-        ppg = [float(ppg) for ppg in ppg_data if ppg != "--"]
+    if(table != None): #find the table body
+        tbody = table.find('tbody')
 
-    return statistics.mean(ppg)
+        if(tbody != None): #find the table rows
+            rows = tbody.find_all('tr')
+
+            ppg_data = []
+
+            for row in rows:
+                ppg = row('td')[7].text.strip()
+                ppg_data.append(ppg)
+
+            #filter out the dashes and connvert text to a float
+            ppg_data = [float(x) for x in ppg_data if x != "--"]
+            if(len(ppg_data) <= 0):
+                print("ERR: ppg returned 0 results... returning 2020 average")
+                return 71.25965417867435
+
+            return statistics.mean(ppg_data)
+        
+        else:
+            print("ERR: scraping possession average: couldnt find the table body")
+            sys.exit()
+            
+    else:
+        print("ERR: scraping possession average: couldnt find the table")
+        sys.exit()
+        
 
 #scrape the league average points scored per game from team rankings
 def scrape_points_per_game_avg(driver, url):
@@ -230,10 +257,10 @@ def generate_test_game():
     unc_stats = test_df[test_df["Team"] == "UNC"]
     unc = Team("UNC", unc_stats)
 
-    test_game = Game(duke, unc, 150.0, 5) #the total here is arbitrary 
+    test_game = NcaaGame(duke, unc, 150.0, 5) #the total here is arbitrary 
     return [test_game]
 
-if __name__ == "__main__":
+#if __name__ == "__main__":
 
-    avg_adj_off = scrape_adjusted_off_avg()
-    print(avg_adj_off)
+    #avg_adj_off = scrape_possession_avg(driver)
+    #print(avg_adj_off)

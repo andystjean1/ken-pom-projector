@@ -79,7 +79,11 @@ def initialize_debug_data():
     global league_avg_ppg
     global games
 
-    league_avg_pace = 67.6
+    driver = webdriver.Chrome(ChromeDriverManager().install())
+
+    league_avg_pace = scrape_possession_avg(driver, tr_possessions_url)
+
+    print(league_avg_pace)
     league_avg_ppg = 100
     games = generate_test_game()
 
@@ -149,16 +153,16 @@ if __name__ == "__main__":
     game_df = pd.DataFrame(columns=cols)
 
     #populate the global data variables
-    #initialize_data("today")
-    # #initialize_debug_data()
-    initialize_tourney()
+    initialize_data("today")
+    #initialize_debug_data()
+    #initialize_tourney()
 
     print("initialized data")
     print(len(games))
 
     #project the score for each game
     for game in games:
-        game.project_score_tourney(league_avg_pace, league_avg_ppg)
+        project_score_advanced(game)
         game_df = game_df.append(game.generate_dictionary(), ignore_index=True)
 
     game_df.to_excel("output.xlsx")

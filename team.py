@@ -11,8 +11,10 @@ class Team(object):
             print("couldnt find kenpom stats for", team_name)
             self.name = team_name
             self.stats = -1
-            
 
+    def __str__(self):
+        return "{0}:{1}".format(self.name, self.stats)
+            
     #return the adjusted tempo stat
     def adjusted_tempo(self):
         return self.stats.iloc[0]["AdjT"]
@@ -24,3 +26,5 @@ class Team(object):
     #return the adjusted defense stat
     def adjusted_defense(self):
         return self.stats.iloc[0]["AdjD"]
+
+    
